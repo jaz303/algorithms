@@ -1,0 +1,64 @@
+<html>
+  <head>
+    <title>Trampoline</title>
+    <script type='text/javascript'>
+    
+      // Recursion
+      (function() {
+        function fib(n) {
+          if (n <= 1) {
+            return n;
+          } else {
+            return fib(n - 1) + fib(n - 2);
+          }
+        }
+
+        console.log(fib(25));
+      })();
+        
+      // Return thunk  
+      (function() {
+        function fibt(n, after) {
+          if (n <= 1) {
+            return {fn: after, args: [n]};
+          } else {
+            return {
+              fn: fibt, args: [n - 1, function(v) {
+                return {
+                  fn: fibt, args: [n - 2, function(w) {
+                    return {
+                      fn: after,
+                      args: [v + w]
+                    }
+                  }]
+                }
+              }]
+            }
+          }
+        }
+        
+        function trampoline(thunk) {
+          while (thunk) {
+            thunk = thunk.fn.apply(null, thunk.args);
+          }
+        }
+        
+        function trampolinize(fn) {
+          return function() {
+            var args = [].splice.call(arguments, 0), out = null;
+            args.push(function(result) { out = result; });
+            trampoline({fn: fn, args: args});
+            return out;
+          }
+        }
+        
+        var fib = trampolinize(fibt);
+        console.log(fib(25));
+      })();
+      
+    </script>
+  </head>
+  <body>
+  
+  </body>
+ </html>
